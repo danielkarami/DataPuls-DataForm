@@ -1,0 +1,39 @@
+config {
+  type: "table",
+  schema: "data_wh_dev_datapuls_cloud",
+  description: "Fact table containing all general ledger financial transactions.",
+  columns: {
+    period_key: "The YYYYMM period for the transaction. Partitioning key.",
+    ansvar_code: "Foreign Key to dim_responsibility.",
+    account_code: "Foreign Key to dim_account (KONTO).",
+    ttkode: "Foreign Key to dim_transaction_code.",
+    amount: "The monetary value of the transaction.",
+  },
+  bigquery: {
+    // Partitioning on the integer period key (YYYYMM) for efficient time-series queries
+    partitionBy: {
+      field: "period_key",
+      data_type: "INT64"
+    },
+    // Clustering on foreign keys used for filtering/aggregations to reduce scan costs
+    clusterBy: ["ansvar_code", "account_code", "ttkode"],
+  }
+}
+
+SELECT
+    T1.period_key,
+    T1.ansvar_code,
+    T1.account_code,
+    T1.ttkode,
+    T1.employee_id,
+    T1.belop as amount
+FROM
+    ${ref("stg_lift")} AS T1
+LEFT JOIN 
+    ${ref("dim_responsibility")} AS D_R
+    ON T1.ansvar_code = D_R.ansvar_code
+-- Soft check for record validity based on Responsibility validity dates
+WHERE 
+    PARSE_DATE('%Y%m', CAST(T1.period_key AS STRING)) 
+    BETWEEN D_R.period_from AND D_R.period_till
+    AND T1.belop IS NOT NULL
