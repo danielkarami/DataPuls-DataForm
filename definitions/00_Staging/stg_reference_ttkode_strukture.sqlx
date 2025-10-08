@@ -16,6 +16,6 @@ SELECT
   TRIM(NIVAA3_desc) AS nivaa_3_desc,
   TRIM(NIVAA4) AS nivaa_4_code,
   TRIM(NIVAA4_desc) AS nivaa_4_desc,
-  CURRENT_TIMESTAMP() AS ingestion_timestamp
+---  CURRENT_TIMESTAMP() AS ingestion_timestamp
 FROM
   `data_wh_dev_datapuls_cloud.raw_reference_ttkode_strukture `
