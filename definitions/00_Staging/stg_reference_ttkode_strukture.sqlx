@@ -1,0 +1,21 @@
+config {
+    type: "table",
+    schema: "data_wh_dev_datapuls_cloud"
+}
+
+  -- Simulates raw ingest view over the ttkode data for financial transactions
+SELECT
+  TRIM(Status) AS status,
+  TRIM(TTkode) AS ttkode,
+  TRIM(TTkode_desc) AS ttkode_desc,
+  TRIM(NIVAA1) AS nivaa_1_code,
+  TRIM(NIVAA1_desc) AS nivaa_1_desc,
+  TRIM(NIVAA2) AS nivaa_2_code,
+  TRIM(NIVAA2_desc) AS nivaa_2_desc,
+  TRIM(NIVAA3) AS nivaa_3_code,
+  TRIM(NIVAA3_desc) AS nivaa_3_desc,
+  TRIM(NIVAA4) AS nivaa_4_code,
+  TRIM(NIVAA4_desc) AS nivaa_4_desc,
+---  CURRENT_TIMESTAMP() AS ingestion_timestamp
+FROM
+  `data_wh_dev_datapuls_cloud.raw_reference_ttkode_strukture `

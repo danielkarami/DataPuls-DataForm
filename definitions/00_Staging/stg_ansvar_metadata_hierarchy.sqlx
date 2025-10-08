@@ -1,0 +1,18 @@
+config {
+  type: "table",
+  schema: "data_wh_dev_datapuls_cloud"
+}
+
+-- Simulates raw ingest view over the LIFT data for financial transactions
+ SELECT
+    TRIM(ansvar) AS ansvar_code,
+    TRIM(ansvar_status) as ansvar_status,
+    TRIM(NIVAA1) AS nivaa_1_code,
+    TRIM(NIVAA2) AS nivaa_2_code,
+    TRIM(NIVAA3) AS nivaa_3_code,
+    TRIM(NIVAA4) AS nivaa_4_code,
+    TRIM(NIVAA5) AS nivaa_5_code,
+    TRIM(NIVAA6) AS nivaa_6_code,
+    CURRENT_TIMESTAMP() AS ingestion_timestamp
+    FROM
+    `data_wh_dev_datapuls_cloud.raw_reference_org_strukture_hierarchy`

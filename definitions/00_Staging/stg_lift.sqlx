@@ -1,0 +1,17 @@
+config {
+  type: "table",
+  schema: "data_wh_dev_datapuls_cloud"
+}
+
+-- Simulates raw ingest view over the LIFT data for financial transactions
+SELECT
+    TRIM(Periode) AS period_key,
+    TRIM(KONTO) AS account_code,
+    TRIM(ANSVAR) AS ansvar_code,
+    CAST(TRIM(TTKODE) AS INT64) AS ttkode,
+    CAST(TRIM(Ansattnr) AS INT64) AS employee_id,
+    CAST(replace(replace((REPLACE(belop, '(', '-')),')',''),',','') as numeric) AS belop,
+    CURRENT_TIMESTAMP() AS ingestion_timestamp
+FROM
+    -- Placeholder table in your staging dataset
+    `data_wh_dev_datapuls_cloud.raw_lift`
