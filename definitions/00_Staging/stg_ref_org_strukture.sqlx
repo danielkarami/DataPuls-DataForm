@@ -1,5 +1,5 @@
 config {
-  type: "table",
+  type: "table"
 }
 
 -- Simulates raw ingest view over the LIFT data for financial transactions

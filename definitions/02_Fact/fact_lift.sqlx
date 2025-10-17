@@ -1,6 +1,5 @@
 config {
   type: "table",
-  schema: "data_wh_dev_datapuls_cloud",
   description: "Fact table containing all general ledger financial transactions.",
   columns: {
     period_key: "The YYYYMM period for the transaction. Partitioning key.",

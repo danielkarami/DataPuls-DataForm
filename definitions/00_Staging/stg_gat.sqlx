@@ -1,6 +1,5 @@
 config {
-    type: "table",
-    schema: "data_wh_dev_datapuls_cloud"
+    type: "table"
 }
 
   -- Simulates raw ingest view over the LIFT data for financial transactions
