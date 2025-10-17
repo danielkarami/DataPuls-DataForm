@@ -21,7 +21,7 @@ config {
 
 SELECT
     T1.period_key, department_code, Employee_id, Stillings_category, Arbeidetekstravakt, Arbeidetegenvakt, Sykefravaer, Annetfravaer, T1.ingestion_timestamp,
-    org_struc.begrep, ansvar_code, ansvar_name, oppdatert, period_from, period_till, status--, org_struc.ingestion_timestamp as org_ingestion_timestamp
+    org_struc.*--, org_struc.ingestion_timestamp as org_ingestion_timestamp
 FROM
     ${ref("stg_gat")} AS T1
 LEFT JOIN 
