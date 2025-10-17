@@ -1,17 +1,16 @@
 config {
   type: "table",
-  schema: "data_wh_dev_datapuls_cloud"
 }
 
 -- Simulates raw ingest view over the LIFT data for financial transactions
 SELECT
     TRIM(begrep) AS begrep,
-    TRIM(begrepsverdi) AS ansvar_code,
-    TRIM(beskrivelse) AS ansvar_name,
+    TRIM(begrepsverdi) AS begrepsverdi,
+    TRIM(beskrivelse) AS beskrivelse,
     TRIM(oppdatert) AS oppdatert,
-    PARSE_DATE('%Y%m%d',(concat((case when right(periode_fra,2) = '00' then concat(left(periode_fra,4),'01') else periode_fra end),'01'))) as period_from,
-    PARSE_DATE('%Y%m%d',(concat((case when right(periode_til,2) = '00' then concat(left(periode_til,4),'01') else periode_til end),'01'))) as period_till,
-    TRIM(status) AS is_active_status,
+    PARSE_DATE('%Y%m%d',(concat((case when right(periode_fra,2) = '00' then concat(left(periode_fra,4),'01') else periode_fra end),'01'))) as periode_fra,
+    PARSE_DATE('%Y%m%d',(concat((case when right(periode_til,2) = '00' then concat(left(periode_til,4),'01') else periode_til end),'01'))) as periode_til,
+    TRIM(status) AS status,
     CURRENT_TIMESTAMP() AS ingestion_timestamp
     --PARSE_DATE('%dd/%mm/%yyyy',oppdatert) as opperating_date,
     -- Placeholder table in your staging dataset

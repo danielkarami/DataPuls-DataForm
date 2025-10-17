@@ -1,0 +1,45 @@
+config {
+  type: "table",
+  schema: "data_wh_dev_datapuls_cloud",
+  description: "Fact table containing all general ledger financial transactions.",
+  columns: {
+    period_key: "The YYYYMM period for the transaction. Partitioning key.",
+    ansvar_code: "Foreign Key to dim_responsibility.",
+    account_code: "Foreign Key to dim_account (KONTO).",
+    ttkode: "Foreign Key to dim_transaction_code.",
+    amount: "The monetary value of the transaction.",
+  },
+  bigquery: {
+    // Partitioning on the integer period key (YYYYMM) for efficient time-series queries
+    partitionBy: {
+      field: "period_key",
+      data_type: "INT64"
+    },
+    // Clustering on foreign keys used for filtering/aggregations to reduce scan costs
+    clusterBy: ["ansvar_code", "account_code", "ttkode"],
+  }
+}
+
+SELECT
+    T1.period_key,
+    T1.ansvar_code,
+    T1.account_code,
+    T1.ttkode,
+    T1.employee_id,
+    T1.belop as amount,
+    ttkode_struc.TT_kode_Tittel
+    ,ttkode_struc.nivaa_1_code
+    ,ttkode_struc.nivaa_1_tittel
+    ,ttkode_struc.nivaa_2_code
+    ,ttkode_struc.nivaa_2_tittel
+    ,ttkode_struc.nivaa_3_code
+    ,ttkode_struc.type_nivaa_3
+    ,ttkode_struc.nivaa_4_code
+    ,ttkode_struc.Kategori_nivaa_4
+FROM
+    ${ref("stg_lift")} AS T1
+LEFT JOIN 
+    ${ref("stg_ref_ttkode_strukture")} AS ttkode_struc
+    ON T1.ttkode = ttkode_struc.ttkode
+-- Soft check for record validity
+-- WHERE T1.belop IS NOT NULL

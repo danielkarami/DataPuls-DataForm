@@ -1,6 +1,5 @@
 config {
   type: "table",
-  schema: "data_wh_dev_datapuls_cloud",
   description: "Fact table containing all general ledger financial transactions.",
   columns: {
     period_key: "The YYYYMM period for the transaction. Partitioning key.",
@@ -16,24 +15,17 @@ config {
       data_type: "INT64"
     },
     // Clustering on foreign keys used for filtering/aggregations to reduce scan costs
-    clusterBy: ["ansvar_code", "account_code", "ttkode"],
+    clusterBy: ["department_code"],
   }
 }
 
 SELECT
-    T1.period_key,
-    T1.ansvar_code,
-    T1.account_code,
-    T1.ttkode,
-    T1.employee_id,
-    T1.belop as amount
+    T1.period_key, department_code, Employee_id, Stillings_category, Arbeidetekstravakt, Arbeidetegenvakt, Sykefravaer, Annetfravaer, T1.ingestion_timestamp,
+    org_struc.begrep, ansvar_code, ansvar_name, oppdatert, period_from, period_till, status--, org_struc.ingestion_timestamp as org_ingestion_timestamp
 FROM
-    ${ref("stg_lift")} AS T1
+    ${ref("stg_gat")} AS T1
 LEFT JOIN 
-    ${ref("dim_responsibility")} AS D_R
-    ON T1.ansvar_code = D_R.ansvar_code
--- Soft check for record validity based on Responsibility validity dates
-WHERE 
-    PARSE_DATE('%Y%m', CAST(T1.period_key AS STRING)) 
-    BETWEEN D_R.period_from AND D_R.period_till
-    AND T1.belop IS NOT NULL
+    ${ref("dim_org")} AS org_struc
+    ON T1.department_code = org_struc.ansvarsnr
+-- Soft check for record validity
+-- WHERE T1.belop IS NOT NULL

@@ -16,7 +16,7 @@ WITH
   SELECT
     *
   FROM
-    ${ref("stg_ansvar_metadata")} ),
+    ${ref("stg_ref_org_strukture")} ),
   hierarchy AS (
   SELECT
     TRIM(Periode) AS period_key,
@@ -25,7 +25,7 @@ WITH
     CAST(TRIM(TTKODE) AS INT64) AS ttkode,
     CAST(TRIM(Ansattnr) AS INT64) AS employee_id,
   FROM
-    ${ref("stg_ansvar_metadata_hierarchy")}
+    ${ref("stg_ref_org_strukture_hierarchy")}
     -- Placeholder for the Org struktur.csv file
     )
 SELECT

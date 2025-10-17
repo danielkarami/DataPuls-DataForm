@@ -1,0 +1,100 @@
+config {
+    type: "table",
+    description: "Dimensional table for Responsibility Units (ANSVAR).",
+    bigquery: {
+        // Clustering helps query performance for common foreign key lookups
+         clusterBy: ["ansvarsnr"],
+    },
+    columns: {
+        // All other hierarchy fields would be defined here
+    }
+}
+
+WITH
+  METADATA AS (
+  SELECT
+    *
+  FROM
+    ${ref("stg_ref_org_strukture")} ),
+  hierarchy AS (
+  SELECT
+    ansvar_code,
+    nivaa_1_code,
+    nivaa_2_code,
+    nivaa_3_code,
+    nivaa_4_code,
+    nivaa_5_code,
+    nivaa_6_code
+  FROM
+    ${ref("stg_ref_org_strukture_hierarchy")}
+    -- Placeholder for the Org struktur.csv file
+    ),
+    Firstjoin as (
+SELECT
+  T1.begrepsverdi,
+  T1.beskrivelse,
+  (T1.status = 'N') AS status,
+  T1.periode_fra,
+  T1.periode_til,
+  -- Denormalized Hierarchy Attributes 
+  T2.ansvar_code as  ansvarsnr,
+  T2.nivaa_1_code,
+  -- Assuming a lookup table/CTE for names for each NIVAA level is created
+  T2.nivaa_2_code,
+  T2.nivaa_3_code,
+  T2.nivaa_4_code,
+  T2.nivaa_5_code,
+  T2.nivaa_6_code,
+  T1.beskrivelse as Avdeling_Nivaa_6
+FROM
+  METADATA AS T1
+INNER JOIN
+  hierarchy AS T2
+ON
+  T1.Begrepsverdi = T2.ansvar_code
+WHERE
+  T1.Begrepsverdi != '0'
+    ),
+Nivva5 as (    
+    select *
+    ,T2.nivaa_5_code as Flag5 
+    ,T1.beskrivelse as Enhet_Nivaa_5
+    from Firstjoin T1
+    inner join hierarchy T2 
+    ON T1.Begrepsverdi = T2.nivaa_5_code 
+    ),
+Nivva4 as (    
+    select *
+    ,T2.nivaa_4_code as Flag4 
+    ,T1.beskrivelse as Tjenesteomraade_Nivaa_4
+    from Firstjoin T1
+    inner join hierarchy T2 
+    ON T1.Begrepsverdi = T2.nivaa_5_code 
+    ),
+Nivva3 as (    
+    select *
+    ,T2.nivaa_3_code as Flag3 
+    ,T1.beskrivelse as Budsjettomraade_Nivaa_3
+    from Firstjoin T1
+    inner join hierarchy T2 
+    ON T1.Begrepsverdi = T2.nivaa_3_code 
+    ),
+Nivva2 as (    
+    select *
+    ,T2.nivaa_2_code as Flag2
+    ,T1.beskrivelse as Direktornivaa_Nivaa_2
+    from Firstjoin T1
+    inner join hierarchy T2 
+    ON T1.Begrepsverdi = T2.nivaa_2_code 
+    )
+select Distinct T1.*
+,Enhet_Nivaa_5
+,Tjenesteomraade_Nivaa_4
+,Budsjettomraade_Nivaa_3
+,Direktornivaa_Nivaa_2
+from Firstjoin T1
+left join Nivva5 using (Begrepsverdi)
+left join Nivva4 using (Begrepsverdi)
+left join Nivva3 using (Begrepsverdi)
+left join Nivva2 using (Begrepsverdi)
+where SAFE_CAST(T1.ansvarsnr AS INT64) IS NULL
