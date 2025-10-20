@@ -9,7 +9,7 @@ SELECT
     TRIM(beskrivelse) AS beskrivelse,
     TRIM(oppdatert) AS oppdatert,
     PARSE_DATE('%Y%m%d',(concat((case when right(periode_fra,2) = '00' then concat(left(periode_fra,4),'01') else periode_fra end),'01'))) as periode_fra,
-    PARSE_DATE('%Y%m%d',(concat((case when right(periode_til,2) = '00' then concat(left(periode_til,4),'01') else periode_til end),'01'))) as periode_til,
+    PARSE_DATE('%Y%m%d',(concat((case when right(periode_til,2) = '00' then concat(left(periode_til,4),'01') else periode_til end),'01'))) as periode_til, --why not using 31 instead of 01?
     TRIM(status) AS status,
     CURRENT_TIMESTAMP() AS ingestion_timestamp
     --PARSE_DATE('%dd/%mm/%yyyy',oppdatert) as opperating_date,

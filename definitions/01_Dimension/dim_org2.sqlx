@@ -20,10 +20,10 @@ WITH
   SELECT
     ansvar_code,
     nivaa_1_code,
-    nivaa_2_code as nivaa_2,
-    nivaa_3_code as nivaa_3,
-    nivaa_4_code as nivaa_4,
-    nivaa_5_code as nivaa_5,
+    nivaa_2_code,
+    nivaa_3_code,
+    nivaa_4_code,
+    nivaa_5_code,
     nivaa_6_code
   FROM
     ${ref("stg_ref_org_strukture_hierarchy")}
@@ -40,10 +40,10 @@ SELECT
   T2.ansvar_code as  ansvarsnr,
   T2.nivaa_1_code,
   -- Assuming a lookup table/CTE for names for each NIVAA level is created
-  T2.nivaa_2,
-  T2.nivaa_3,
-  T2.nivaa_4,
-  T2.nivaa_5,
+  T2.nivaa_2_code,
+  T2.nivaa_3_code,
+  T2.nivaa_4_code,
+  T2.nivaa_5_code as nivaa_5,
   T2.nivaa_6_code,
   T1.beskrivelse as Avdeling_Nivaa_6
 FROM
@@ -54,47 +54,19 @@ ON
   T1.Begrepsverdi = T2.ansvar_code
 WHERE
   T1.Begrepsverdi != '0'
-    ),
-Nivva5 as (    
+    )
+,Nivva5 as (    
     select *
     ,T1.nivaa_5 as Flag5 
     ,T2.beskrivelse as Enhet_Nivaa_5
     from Firstjoin T1
     left outer join METADATA T2 
     ON T2.begrepsverdi =  T1.nivaa_5
-    ),
-Nivva4 as (    
-    select *
-    ,T1.nivaa_4 as Flag4 
-    ,T2.beskrivelse as Tjenesteomraade_Nivaa_4
-    from Firstjoin T1
-    left outer join METADATA T2 
-    ON T2.begrepsverdi =  T1.nivaa_4 
-    ),
-Nivva3 as (    
-    select *
-    ,T1.nivaa_3 as Flag3 
-    ,T2.beskrivelse as Budsjettomraade_Nivaa_3
-    from Firstjoin T1
-    left outer join METADATA T2
-    ON T2.begrepsverdi =  T1.nivaa_3 
-    ),
-Nivva2 as (    
-    select *
-    ,T1.nivaa_2 as Flag2
-    ,T2.beskrivelse as Direktornivaa_Nivaa_2
-   from Firstjoin T1
-    left outer join METADATA T2
-    ON T2.begrepsverdi =  T1.nivaa_2 
     )
+
+--select * from Firstjoin 
 select Distinct T1.*
 ,Enhet_Nivaa_5
-,Tjenesteomraade_Nivaa_4
-,Budsjettomraade_Nivaa_3
-,Direktornivaa_Nivaa_2
-from Firstjoin T1
+from Firstjoin T1 
 left join Nivva5 using (nivaa_5)
-left join Nivva4 on T1.nivaa_4 = Nivva4.nivaa_4
-left join Nivva3 on T1.nivaa_3 = Nivva3.nivaa_3
-left join Nivva2 on T1.nivaa_2 = Nivva2.nivaa_2
-where SAFE_CAST(T1.ansvarsnr AS INT64) IS NULL
+where SAFE_CAST(T1.ansvarsnr AS INT64) IS NOT NULL
