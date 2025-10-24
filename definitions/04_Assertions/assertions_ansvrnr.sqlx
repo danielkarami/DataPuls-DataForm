@@ -1,0 +1,23 @@
+config { type: "assertion" }
+
+SELECT
+    period_key
+    ,ansvar_code
+    ,employee_id
+    ,"fact_lift" as src_tbl
+    ,CURRENT_TIMESTAMP() AS ingestion_timestamp
+FROM
+  ${ref("fact_lift")}
+WHERE
+  ansvarsnr IS NULL
+union all
+SELECT
+    period_key
+    ,department_code
+    ,employee_id
+    ,"fact_gat" as src_tbl
+    ,CURRENT_TIMESTAMP() AS ingestion_timestamp
+FROM
+  ${ref("fact_gat")}
+WHERE
+  ansvarsnr IS NULL

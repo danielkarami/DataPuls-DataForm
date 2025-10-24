@@ -1,0 +1,12 @@
+config { type: "assertion" }
+
+SELECT
+    period_key
+    ,ttkode
+    ,employee_id
+    ,"fact_lift" as src_tbl
+    ,CURRENT_TIMESTAMP() AS ingestion_timestamp
+FROM
+  ${ref("fact_lift")}
+WHERE
+  ttkode_struc IS NULL

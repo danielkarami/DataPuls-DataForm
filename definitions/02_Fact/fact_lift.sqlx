@@ -18,14 +18,15 @@ config {
     clusterBy: ["ansvar_code", "account_code", "ttkode"],
   }
 }
-
+with src_ttkode as (
 SELECT
     T1.period_key,
-    T1.ansvar_code,
+    T1.ansvar_code, -- join key woth org table
     T1.account_code,
     T1.ttkode,
     T1.employee_id,
     T1.belop as amount,
+    ttkode_struc.ttkode as ttkode_struc,
     ttkode_struc.TT_kode_Tittel
     ,ttkode_struc.nivaa_1_code
     ,ttkode_struc.nivaa_1_tittel
@@ -42,3 +43,14 @@ LEFT JOIN
     ON T1.ttkode = ttkode_struc.ttkode
 -- Soft check for record validity
 -- WHERE T1.belop IS NOT NULL
+)
+,src_org as (
+    select *
+    from
+    src_ttkode T1
+    left join ${ref("dim_org")} dim_org
+    on T1.ansvar_code = dim_org.ansvarsnr
+    and PARSE_DATE('%d/%m/%Y',  T1.period_key) BETWEEN dim_org.periode_fra AND dim_org.periode_til
+)
+
+select * from src_org

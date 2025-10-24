@@ -7,8 +7,8 @@ SELECT
     TRIM(Periode) AS period_key,
     TRIM(KONTO) AS account_code,
     TRIM(ANSVAR) AS ansvar_code,
-    CAST(TRIM(TTKODE) AS INT64) AS ttkode,
-    CAST(TRIM(Ansattnr) AS INT64) AS employee_id,
+    TRIM(TTKODE) AS ttkode,
+    TRIM(Ansattnr) AS employee_id,
     CAST(replace(replace((REPLACE(belop, '(', '-')),')',''),',','') as numeric) AS belop,
     CURRENT_TIMESTAMP() AS ingestion_timestamp
 FROM

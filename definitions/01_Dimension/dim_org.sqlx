@@ -19,12 +19,12 @@ WITH
   hierarchy AS (
   SELECT
     ansvar_code,
-    nivaa_1_code,
+    nivaa_1_code as nivva_1,
     nivaa_2_code as nivaa_2,
     nivaa_3_code as nivaa_3,
     nivaa_4_code as nivaa_4,
     nivaa_5_code as nivaa_5,
-    nivaa_6_code
+    nivaa_6_code as nivaa_6
   FROM
     ${ref("stg_ref_org_strukture_hierarchy")}
     -- Placeholder for the Org struktur.csv file
@@ -38,13 +38,13 @@ SELECT
   T1.periode_til,
   -- Denormalized Hierarchy Attributes 
   T2.ansvar_code as  ansvarsnr,
-  T2.nivaa_1_code,
+  T2.nivva_1,
   -- Assuming a lookup table/CTE for names for each NIVAA level is created
   T2.nivaa_2,
   T2.nivaa_3,
   T2.nivaa_4,
   T2.nivaa_5,
-  T2.nivaa_6_code,
+  T2.nivaa_6,
   T1.beskrivelse as Avdeling_Nivaa_6
 FROM
   METADATA AS T1

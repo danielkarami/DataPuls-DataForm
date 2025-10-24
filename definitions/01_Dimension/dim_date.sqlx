@@ -1,0 +1,54 @@
+config {
+    type: "table"
+}
+with date_src as (
+SELECT
+  d as id,
+  FORMAT_DATE('%Y-%m', d) as yearMonth,
+  FORMAT_DATE('%F', d) as yearMonthDay,
+  EXTRACT(YEAR FROM d) AS year,
+  EXTRACT(MONTH FROM d) AS month,
+  FORMAT_DATE('%m', d) as monthPadded,
+  EXTRACT(DAY FROM d) as day,  
+  FORMAT_DATE('%d', d) as dayPadded,
+  FORMAT_DATE('%w', d) AS dayOfWeek, --0=sunday
+  --FORMAT_DATE('%u', d) AS dayOfWeek2, --7=sunday
+  FORMAT_DATE('%j', d) as dayOfYear,
+  FORMAT_DATE('%Q', d) as quarter,
+  EXTRACT(WEEK FROM d) AS weekNumber, --assuming Sunday is the first day of the week
+  --FORMAT_DATE('%U', d) as weekNumber3, --assuming Sunday is the first day of the week
+  --FORMAT_DATE('%W', d) as weekNumber2, --assuming Monday is the first day of the week  
+  FORMAT_DATE('%a', d) AS dayName,
+  FORMAT_DATE('%A', d) AS dayNameLong,
+  FORMAT_DATE('%b', d) as monthName,
+  FORMAT_DATE('%B', d) as monthNameLong,
+  --FORMAT_DATE('%e', d) as dayString,
+  FORMAT_DATE('%d/%m/%Y', d) as dateFormatUK,
+  FORMAT_DATE('%A %B%e, %Y', d) as dateFormatLong,
+  CASE WHEN FORMAT_DATE('%A', d) IN ('Sunday', 'Saturday') THEN True ELSE False END AS weekend,
+  --calc financial year & month (based on April being Month 1)
+  CASE WHEN EXTRACT(MONTH FROM d) < 4 THEN 
+   (EXTRACT(YEAR FROM d) -1) || '-' || EXTRACT(YEAR FROM d) ELSE EXTRACT(YEAR FROM d) || '-' || (EXTRACT(YEAR FROM d) + 1) END as financialYear,
+  CASE WHEN EXTRACT(MONTH FROM d) > 3 THEN 
+   '0'||(EXTRACT(MONTH FROM d) - 3) ELSE ''||(EXTRACT(MONTH FROM d) + 9) END as financialMonth,
+  CASE WHEN FORMAT_DATE('%A', d) IN ('Sunday', 'Saturday') THEN 0 ELSE 1 END AS isworkday, 
+ -- DATE_DIFF(TIMESTAMP(CONCAT(STRING(EXTRACT(YEAR from (DATE_ADD(TIMESTAMP(d),1, "Month")))),"-",STRING(EXTRACT(MONTH from (DATE_ADD(TIMESTAMP(d),1, "Month")))),"-1")), 
+--  TIMESTAMP(CONCAT(STRING(EXTRACT(YEAR FROM(TIMESTAMP(d)))),"-",STRING(EXTRACT(MONTH FROM(TIMESTAMP(d)))), "-1")))
+ --EXTRACT(DAY FROM (DATE_SUB(DATE_TRUNC(DATE_ADD(d, INTERVAL 1 MONTH), MONTH),INTERVAL 1 DAY))) as noofwrkdayspermonth
+
+FROM (
+  SELECT
+    *
+  FROM
+    UNNEST(GENERATE_DATE_ARRAY('2020-01-01', '2026-01-01', INTERVAL 1 DAY)) AS d )
+),
+date_sum as (
+select year,month,sum(isworkday) as noofwrkdayspermonth
+from (select year,month,isworkday from date_src)date_src
+--where year = 2024 and month = 2
+group by all
+)
+
+select date_src.*, date_sum.noofwrkdayspermonth
+from date_src
+join date_sum using(year,month)

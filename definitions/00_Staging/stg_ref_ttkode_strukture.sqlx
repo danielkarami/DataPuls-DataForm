@@ -5,7 +5,7 @@ config {
   -- Simulates raw ingest view over the ttkode data for financial transactions
 SELECT
   TRIM(Status) AS status,
-  cast(TRIM(TTkode) as integer) AS ttkode,
+  TRIM(TTkode) AS ttkode,
   TRIM(TTkode_desc) AS TT_kode_Tittel,
   TRIM(NIVAA1) AS nivaa_1_code,
   TRIM(NIVAA1_desc) AS nivaa_1_tittel,

@@ -1,4 +1,4 @@
 defaultProject: datapuls-df-dev
 defaultDataset: data_wh_dev_datapuls_cloud
-defaultAssertionDataset: dataform_assertions
+defaultAssertionDataset: data_mart_dev_datapuls_cloud
 dataformCoreVersion: 3.0.26

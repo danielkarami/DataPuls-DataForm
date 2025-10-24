@@ -1,0 +1,48 @@
+config {
+  type: "table",
+  schema: "data_mart_dev_datapuls_cloud",
+  description: "Fact table containing all general ledger financial transactions.",
+  columns: {
+    period_key: "The YYYYMM period for the transaction. Partitioning key.",
+    ansvar_code: "Foreign Key to dim_responsibility.",
+    account_code: "Foreign Key to dim_account (KONTO).",
+    ttkode: "Foreign Key to dim_transaction_code.",
+    amount: "The monetary value of the transaction.",
+  }
+/*  ,bigquery: {
+    // Partitioning on the integer period key (YYYYMM) for efficient time-series queries
+    partitionBy: {
+      field: "period_key",
+      data_type: "INT64"
+    },
+    // Clustering on foreign keys used for filtering/aggregations to reduce scan costs
+    clusterBy: ["department_code"],
+  }*/
+}
+with fact as (
+SELECT
+    fact_gat.* except (begrepsverdi, beskrivelse, status, periode_fra, periode_til, ansvarsnr, nivva_1, nivaa_2, nivaa_3, nivaa_4, nivaa_5, nivaa_6, Avdeling_Nivaa_6, Enhet_Nivaa_5, Tjenesteomraade_Nivaa_4, Budsjettomraade_Nivaa_3, Direktornivaa_Nivaa_2)
+    ,extract(year from PARSE_DATE('%d/%m/%Y',  fact_gat.period_key)) as gat_year
+    ,extract(month from PARSE_DATE('%d/%m/%Y',  fact_gat.period_key)) as gat_month,
+    --period_key, department_code, Employee_id, Stillings_category, Arbeidetekstravakt, Arbeidetegenvakt, Sykefravaer, Annetfravaer, T1.ingestion_timestamp,
+    T2.* except (period_key,employee_id)
+    --, org_struc.ingestion_timestamp as org_ingestion_timestamp
+FROM
+    ${ref("fact_gat")} AS fact_gat
+    JOIN 
+    ${ref("fact_lift")} AS T2
+    on extract(year from PARSE_DATE('%d/%m/%Y',  fact_gat.period_key)) = extract(year from PARSE_DATE('%Y%m',  T2.period_key))
+    AND extract(month from PARSE_DATE('%d/%m/%Y',  fact_gat.period_key)) = extract(month from PARSE_DATE('%Y%m',  T2.period_key))
+--    ON T1.period_key = T2.period_key
+    AND fact_gat.Employee_id = cast(T2.employee_id as STRING)
+    AND fact_gat.department_code = T2.ansvar_code
+
+-- Soft check for record validity
+-- WHERE T1.belop IS NOT NULL
+)
+
+select *
+from ${ref("dim_date")} AS date
+left join fact 
+on date.id = PARSE_DATE('%d/%m/%Y',fact.period_key)
+--where date.year = 2024 and date.month = 1
