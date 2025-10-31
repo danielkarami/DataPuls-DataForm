@@ -28,7 +28,7 @@ SELECT
   ,count(*) OVER ( PARTITION BY Enhet_nr, Enhet_navn, Koststed, Arbeidssted, T2.Ansattnr, join_key_dept_code, Hovedarbf,T1.Arbfnr, Startdato, Gjelder_fra, Gjelder_til, Sluttdato, Ansattform, Arbeidstids_ordning, Stillingsgruppe, Stillingsbetegnelse, Stillingskode, Stillingskode_tekst,Timer_per_uke, Loannsgruppe_kode, Loannsgruppe_tekst, Loannsandel, T1.ingestion_timestamp, source_file_name, period_key) AS arbeidsforholdliste_rec_count
 FROM ${ref("stg_transaksjonsliste")} as T2
 left join  ${ref("stg_arbeidsforholdliste")} AS T1
-    ON T2.yr_Mnd = T1.period_key 
+    ON T2.period_key = T1.period_key 
     AND T2.Ansvar = T1.join_key_dept_code
     and T2.Ansattnr = T1.Ansattnr
 )

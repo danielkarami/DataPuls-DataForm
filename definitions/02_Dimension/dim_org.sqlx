@@ -66,6 +66,7 @@ SELECT
     ,ifnull(Bare_Dag,'Dag') as Dag_eller_Turnus
     ,case when Bare_Dag is null then 1950/260 else 1864/260 end as Arbeidtimer_per_dag
   ,stg.* except (ANSVAR)
+  ,CAST(replace(replace((REPLACE((trim(vtd.Pris)), ' ', '')),')',''),',','.') as numeric) AS Pris
 FROM
   Firstjoin AS fj
 LEFT JOIN
@@ -97,3 +98,8 @@ LEFT JOIN
   ${ref("stg_ref_vikarbyra_kostnader")} AS stg
 ON
   fj.ansvarsnr = stg.ANSVAR
+LEFT JOIN
+  ${ref("raw_vikarbyra_timespris_datapuls")} AS vtd
+ON
+  fj.nivaa_3 = trim(vtd.Nivaa3) 
+AND stg.aar = vtd.aar

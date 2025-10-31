@@ -25,8 +25,8 @@ WITH
   SELECT
     fact_gat.* EXCEPT (begrepsverdi,beskrivelse,status,periode_fra,periode_til,ansvarsnr,nivva_1,nivaa_2,nivaa_3
     ,nivaa_4,nivaa_5,nivaa_6,Avdeling_Nivaa_6,Enhet_Nivaa_5,Tjenesteomraade_Nivaa_4,Budsjettomraade_Nivaa_3
-    ,Direktornivaa_Nivaa_2),
-    T2.* EXCEPT (period_key,employee_id,Bare_Dag,Dag_eller_Turnus,Arbeidtimer_per_dag,ttkode)
+    ,Direktornivaa_Nivaa_2,aar,Periode,KONTO,FUNKSJON),
+    T2.* EXCEPT (period_key,employee_id,Bare_Dag,Dag_eller_Turnus,Arbeidtimer_per_dag,ttkode,KOSTFUNK,belop,Pris)
   FROM
     ${ref("f_gat_month_agg")} AS fact_gat
 FULL OUTER JOIN
