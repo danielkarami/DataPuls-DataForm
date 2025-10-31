@@ -1,0 +1,23 @@
+config {
+  type: "operations",
+  tags: ["external"],
+  hasOutput: true
+}
+
+CREATE OR REPLACE EXTERNAL TABLE ${self()} (
+
+Loannsgruppe STRING
+,Tekst STRING
+,Utdanning STRING
+)
+
+OPTIONS (
+  format = "CSV",
+  uris = ["gs://raw-hist-dev-datapuls-cloud/reference/reference_hr_map_edu_lvl.csv"],
+  field_delimiter = ";",
+  ignore_unknown_values = true,
+  allow_quoted_newlines = true,
+  allow_jagged_rows = true,
+  skip_leading_rows = 1, --first row as header
+  quote = '"'
+);

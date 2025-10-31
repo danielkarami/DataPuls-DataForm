@@ -1,0 +1,42 @@
+config {
+  type: "table"
+}
+
+-- Simulates raw ingest view over the LIFT data for financial transactions
+SELECT
+trim(Enhet_nr) Enhet_nr
+,trim(Enhet_navn) Enhet_navn
+,trim(Koststed) Koststed -- connection key with ansver code
+,trim(Arbeidssted) Arbeidssted -- use this column when kostted is null
+,trim(Ansattnr) Ansattnr
+,left((ifnull((trim(Koststed)),(trim(Arbeidssted)))),6) as join_key_dept_code
+,trim(Hovedarbf) Hovedarbf
+,CAST(trim(Arbfnr) as NUMERIC) as Arbfnr
+,PARSE_DATE('%d.%m.%Y',Startdato) as Startdato
+,PARSE_DATE('%d.%m.%Y',Gjelder_fra) as Gjelder_fra 
+,PARSE_DATE('%d.%m.%Y',(ifnull(Gjelder_til,'31.12.2999'))) as Gjelder_til
+,PARSE_DATE('%d.%m.%Y',(ifnull(Sluttdato,'31.12.2999'))) as Sluttdato
+--,PARSE_DATE('%d.%m.%Y',Sluttdato) as Sluttdato
+,trim(Ansattform) Ansattform 
+,trim(Arbeidstids_ordning) Arbeidstids_ordning
+,trim(Stillingsgruppe) Stillingsgruppe
+,trim(Stillingsbetegnelse) Stillingsbetegnelse
+,trim(Stillingskode) Stillingskode
+,trim(Stillingskode_tekst) Stillingskode_tekst
+,cast(Timer_per_uke as NUMERIC) as Timer_per_uke
+,trim(Loannsgruppe_kode) Loannsgruppe_kode
+,trim(Loannsgruppe_tekst) Loannsgruppe_tekst
+--,trim(Loannsandel) Loannsandel
+,cast((REPLACE(Loannsandel, '%', '')) as NUMERIC)/100 as Loannsandel
+,CURRENT_TIMESTAMP() AS ingestion_timestamp
+,_FILE_NAME as source_file_name
+,PARSE_DATE('%Y%m',(REPLACE((right(_FILE_NAME,10)),'.csv',''))) as period_key
+,Tekst
+,Utdanning
+FROM
+    -- Placeholder table in your staging dataset
+    ${ref("raw_arbeidsforholdliste")} raw
+Left join
+    ${ref("stg_ref_hr_map_edu_lvl")} stg
+    ON trim(raw.Loannsgruppe_kode) = trim(stg.Loannsgruppe)
+--where Koststed is null

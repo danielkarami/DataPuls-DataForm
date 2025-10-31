@@ -1,0 +1,20 @@
+config {
+    type: "table"
+}
+
+  -- Simulates raw ingest view over the LIFT data for financial transactions
+SELECT
+  PARSE_DATE('%m/%d/%Y', Vaktdato)as period_key,
+  TRIM(Avdelingskode) AS department_code,
+  TRIM(Ansattkode) AS Employee_id,
+  TRIM(Stillingskategori) AS Stillings_category,
+  CAST(REPLACE((REPLACE(eksternt_innleie, '(', '-')),')','') AS numeric) AS eksternt_innleie,
+  CAST(REPLACE((REPLACE(Arbeidet_ekstravakt, '(', '-')),')','') AS numeric) AS Arbeidetekstravakt,
+  CAST(REPLACE((REPLACE(Arbeidet_egenvakt, '(', '-')),')','') AS numeric) AS Arbeidetegenvakt,
+  CAST(REPLACE((REPLACE(Sykefravaer, '(', '-')),')','') AS numeric) AS Sykefravaer,
+  CAST(REPLACE((REPLACE(Annet_fravaer, '(', '-')),')','') AS numeric) AS Annetfravaer,
+  CURRENT_TIMESTAMP() AS ingestion_timestamp
+FROM
+    ${ref("raw_gat")}
+  -- Placeholder table in your staging dataset
+  --`data_wh_dev_datapuls_cloud.raw_gat`

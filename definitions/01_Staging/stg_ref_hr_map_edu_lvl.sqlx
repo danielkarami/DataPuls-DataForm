@@ -1,0 +1,11 @@
+config {
+  type: "table"
+}
+
+
+SELECT 
+trim(Loannsgruppe) as Loannsgruppe
+,trim(Tekst) as Tekst
+,trim(Utdanning) as Utdanning
+from
+    ${ref("raw_ref_hr_map_edu_lvl")}

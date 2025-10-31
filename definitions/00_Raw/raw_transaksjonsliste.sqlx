@@ -1,0 +1,34 @@
+config {
+  type: "operations",
+  tags: ["external"],
+  hasOutput: true
+}
+
+CREATE OR REPLACE EXTERNAL TABLE ${self()} (
+
+yr_Mnd string
+,Ansattnr string
+,Arbfnr string
+,Loannsart string
+,Betegnelse string
+,Art string
+,Art_navn string
+,Ansvar string
+,Ansvar_navn string
+,Funksjonsomr string
+,Funksjonsomr_navn string
+,Antall string
+,Sats string
+,Belop string
+
+)
+OPTIONS (
+  format = "CSV",
+  uris = ["gs://raw-hist-dev-datapuls-cloud/HR/Transaksjonsliste/*.csv"],
+  field_delimiter = ";",
+  ignore_unknown_values = true,
+  allow_quoted_newlines = true,
+  allow_jagged_rows = true,
+  skip_leading_rows = 1, --first row as header
+  quote = '"'
+);

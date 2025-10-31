@@ -4,7 +4,7 @@ config {
 
 -- Simulates raw ingest view over the LIFT data for financial transactions
 SELECT
-    TRIM(Periode) AS period_key,
+    PARSE_DATE('%Y%m%d',(CONCAT(Periode,'01'))) as period_key,
     TRIM(KONTO) AS account_code,
     TRIM(ANSVAR) AS ansvar_code,
     TRIM(TTKODE) AS ttkode,
@@ -13,4 +13,4 @@ SELECT
     CURRENT_TIMESTAMP() AS ingestion_timestamp
 FROM
     -- Placeholder table in your staging dataset
-    `data_wh_dev_datapuls_cloud.raw_lift`
+    ${ref("raw_lift")}
