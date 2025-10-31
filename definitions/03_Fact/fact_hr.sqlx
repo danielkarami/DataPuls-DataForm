@@ -1,0 +1,37 @@
+config {
+  type: "table",
+  description: "Fact table containing all general ledger financial transactions.",
+  columns: {
+    period_key: "The YYYYMM period for the transaction. Partitioning key.",
+    ansvar_code: "Foreign Key to dim_responsibility.",
+    account_code: "Foreign Key to dim_account (KONTO).",
+    ttkode: "Foreign Key to dim_transaction_code.",
+    amount: "The monetary value of the transaction.",
+  },
+  bigquery: {
+    // Partitioning on the integer period key (YYYYMM) for efficient time-series queries
+    partitionBy: {
+      field: "period_key",
+      data_type: "INT64"
+    },
+    // Clustering on foreign keys used for filtering/aggregations to reduce scan costs
+    clusterBy: ["Ansvar"],
+  }
+}
+
+with Src as (
+SELECT 
+   T2.* except (ingestion_timestamp,Arbfnr)
+  ,T2.Arbfnr as trans_Arbfnr
+  ,count(*) OVER ( PARTITION BY T2.yr_Mnd,T2.Ansattnr,T2.Arbfnr,T2.Loannsart,T2.Betegnelse,T2.Art,T2.Art_navn,T2.Ansvar,T2.Ansvar_navn,T2.Funksjonsomr,T2.Funksjonsomr_navn,T2.Antall,T2.Sats,T2.belop,T2.ingestion_timestamp) AS transaksjonsliste_rec_count 
+  ,T1.* except (Ansattnr)
+  ,count(*) OVER ( PARTITION BY Enhet_nr, Enhet_navn, Koststed, Arbeidssted, T2.Ansattnr, join_key_dept_code, Hovedarbf,T1.Arbfnr, Startdato, Gjelder_fra, Gjelder_til, Sluttdato, Ansattform, Arbeidstids_ordning, Stillingsgruppe, Stillingsbetegnelse, Stillingskode, Stillingskode_tekst,Timer_per_uke, Loannsgruppe_kode, Loannsgruppe_tekst, Loannsandel, T1.ingestion_timestamp, source_file_name, period_key) AS arbeidsforholdliste_rec_count
+FROM ${ref("stg_transaksjonsliste")} as T2
+left join  ${ref("stg_arbeidsforholdliste")} AS T1
+    ON T2.yr_Mnd = T1.period_key 
+    AND T2.Ansvar = T1.join_key_dept_code
+    and T2.Ansattnr = T1.Ansattnr
+)
+
+select * from src 
+--where transaksjonsliste_rec_count = 2

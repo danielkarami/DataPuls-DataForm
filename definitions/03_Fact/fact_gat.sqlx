@@ -20,13 +20,18 @@ config {
 }
 
 SELECT
-    T1.period_key, department_code, Employee_id, Stillings_category, Arbeidetekstravakt, Arbeidetegenvakt, Sykefravaer, Annetfravaer, T1.ingestion_timestamp,
-    org_struc.*--, org_struc.ingestion_timestamp as org_ingestion_timestamp
+    T1.*--period_key, department_code, Employee_id, Stillings_category, Arbeidetekstravakt, Arbeidetegenvakt, Sykefravaer, Annetfravaer, T1.ingestion_timestamp,
+    ,org_struc.*--, org_struc.ingestion_timestamp as org_ingestion_timestamp
+    ,ref_sg.Ansattgruppe
 FROM
     ${ref("stg_gat")} AS T1
+left join ${ref("stg_stillingsgruppe_ansattgruppe")} as ref_sg
+    ON T1.Stillings_category = ref_sg.gat_stillingsgruppe
 left JOIN 
     ${ref("dim_org")} AS org_struc
     ON T1.department_code = org_struc.ansvarsnr
-    and PARSE_DATE('%Y%m', CAST(T1.period_key AS STRING)) BETWEEN org_struc.periode_fra AND org_struc.periode_til
+    and period_key BETWEEN org_struc.periode_fra AND org_struc.periode_til
+--    and PARSE_DATE('%d/%m/%Y', CAST(T1.period_key AS STRING)) BETWEEN org_struc.periode_fra AND org_struc.periode_til
+--    and status --removed thelogic as its causing historical errors for empl at 202401
 -- Soft check for record validity
 -- WHERE T1.belop IS NOT NULL

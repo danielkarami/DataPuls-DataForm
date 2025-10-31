@@ -1,0 +1,11 @@
+config {
+  type: "table"
+}
+
+-- Simulates raw ingest view over the LIFT data for financial transactions
+ SELECT
+    TRIM(gat_stillingsgruppe) AS gat_stillingsgruppe,
+    TRIM(Ansattgruppe) as Ansattgruppe,
+    CURRENT_TIMESTAMP() AS ingestion_timestamp
+    FROM
+    `data_wh_dev_datapuls_cloud.raw_ref_stillingsgruppe_ansattgruppe`

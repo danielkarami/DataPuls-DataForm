@@ -1,0 +1,99 @@
+config {
+    type: "table",
+    description: "Dimensional table for Responsibility Units (ANSVAR).",
+    bigquery: {
+        // Clustering helps query performance for common foreign key lookups
+         clusterBy: ["ansvarsnr"],
+    },
+    columns: {
+        // All other hierarchy fields would be defined here
+    }
+}
+WITH
+  hierarchy AS (
+  -- This CTE is fine, it just renames columns for clarity.
+  SELECT
+    ansvar_code,
+    nivaa_1_code AS nivva_1,
+    nivaa_2_code AS nivaa_2,
+    nivaa_3_code AS nivaa_3,
+    nivaa_4_code AS nivaa_4,
+    nivaa_5_code AS nivaa_5,
+    nivaa_6_code AS nivaa_6
+  FROM
+--data_wh_dev_datapuls_cloud.stg_ref_org_strukture_hierarchy
+    ${ref("stg_ref_org_strukture_hierarchy")}
+  ),
+  
+  Firstjoin AS (
+  -- This CTE builds the base data by joining the hierarchy to its metadata.
+  -- No need for a separate 'METADATA' CTE, we join the table directly.
+  SELECT
+    T1.begrepsverdi,
+    T1.beskrivelse,
+    (T1.status = 'N') AS status,
+    T1.periode_fra,
+    T1.periode_til,
+    T2.ansvar_code AS ansvarsnr,
+    T2.nivva_1,
+    T2.nivaa_2,
+    T2.nivaa_3,
+    T2.nivaa_4,
+    T2.nivaa_5,
+    T2.nivaa_6,
+    T1.beskrivelse AS Avdeling_Nivaa_6 -- Assumes T1.beskrivelse is the description for the base level
+  FROM
+--data_wh_dev_datapuls_cloud.stg_ref_org_strukture  AS T1
+    ${ref("stg_ref_org_strukture")} AS T1
+  INNER JOIN
+    hierarchy AS T2
+  ON
+    T1.Begrepsverdi = T2.ansvar_code
+  WHERE
+    T1.Begrepsverdi != '0'
+    and begrep = 'ANSVAR' -- included the filleter missed
+  )
+
+-- Final SELECT: Replaces all 'Nivva' CTEs and the final DISTINCT join.
+-- We read from 'Firstjoin' once and perform all lookups directly.
+SELECT
+  fj.*, -- Selects all columns from the Firstjoin CTE
+  meta2.beskrivelse AS Direktornivaa_Nivaa_2,
+  meta3.beskrivelse AS Budsjettomraade_Nivaa_3,
+  meta4.beskrivelse AS Tjenesteomraade_Nivaa_4,
+  meta5.beskrivelse AS Enhet_Nivaa_5
+  ,Bare_Dag
+    ,ifnull(Bare_Dag,'Dag') as Dag_eller_Turnus
+    ,case when Bare_Dag is null then 1950/260 else 1864/260 end as Arbeidtimer_per_dag
+  ,stg.* except (ANSVAR)
+FROM
+  Firstjoin AS fj
+LEFT JOIN
+--data_wh_dev_datapuls_cloud.stg_ref_org_strukture AS meta2
+  ${ref("stg_ref_org_strukture")} AS meta2
+ON
+  fj.nivaa_2 = meta2.begrepsverdi
+LEFT JOIN
+--data_wh_dev_datapuls_cloud.stg_ref_org_strukture AS meta3
+  ${ref("stg_ref_org_strukture")} AS meta3
+ON
+  fj.nivaa_3 = meta3.begrepsverdi
+LEFT JOIN
+--data_wh_dev_datapuls_cloud.stg_ref_org_strukture AS meta4
+  ${ref("stg_ref_org_strukture")} AS meta4
+ON
+  fj.nivaa_4 = meta4.begrepsverdi
+LEFT JOIN
+--data_wh_dev_datapuls_cloud.stg_ref_org_strukture AS meta5
+  ${ref("stg_ref_org_strukture")} AS meta5
+ON
+  fj.nivaa_5 = meta5.begrepsverdi
+LEFT JOIN
+  ${ref("stg_ansvar_turnus")} AS sat
+ON
+  fj.Begrepsverdi = sat.Ansvarsnr
+and trim(sat.Ansvarsnavn) is not null -- to be included on assertions
+LEFT JOIN 
+  ${ref("stg_ref_vikarbyra_kostnader")} AS stg
+ON
+  fj.ansvarsnr = stg.ANSVAR

@@ -1,0 +1,38 @@
+config {
+  type: "table",
+  schema: "data_mart_dev_datapuls_cloud",
+  description: "Fact table containing all general ledger financial transactions.",
+  columns: {
+    period_key: "The YYYYMM period for the transaction. Partitioning key.",
+    ansvar_code: "Foreign Key to dim_responsibility.",
+    account_code: "Foreign Key to dim_account (KONTO).",
+    ttkode: "Foreign Key to dim_transaction_code.",
+    amount: "The monetary value of the transaction.",
+  }
+ ,bigquery: {
+    // Partitioning on the integer period key (YYYYMM) for efficient time-series queries
+    partitionBy: {
+      field: "period_key",
+      data_type: "date"
+    }
+    }
+    /*,
+    // Clustering on foreign keys used for filtering/aggregations to reduce scan costs
+    clusterBy: ["department_code"],
+  }*/
+}
+
+SELECT
+    * except (period_key,eksternt_innleie,Arbeidetekstravakt,Arbeidetegenvakt,Annetfravaer)
+    ,DATE_TRUNC(period_key,month) as period_key
+    ,extract(year from period_key) as gat_year
+    ,extract(month from period_key) as gat_month
+    ,sum(eksternt_innleie) AS eksternt_innleie
+    ,SUM(Arbeidetekstravakt) as Arbeidetekstravakt
+    ,sum(Arbeidetegenvakt) as Arbeidetegenvakt
+    ,sum(Annetfravaer) as Annetfravaer
+FROM
+    ${ref("fact_gat")} AS fact_gat
+-- Soft check for record validity
+-- WHERE T1.belop IS NOT NULL
+group by all

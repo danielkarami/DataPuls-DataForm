@@ -1,0 +1,14 @@
+config {
+  type: "table"
+}
+
+SELECT 
+TRIM(aar) aar
+,TRIM(Periode) Periode
+,TRIM(KONTO) KONTO
+,TRIM(ANSVAR) ANSVAR
+,TRIM(FUNKSJON) FUNKSJON
+,TRIM(KOSTFUNK) KOSTFUNK
+,CAST(replace(replace((REPLACE((TRIM(Belop)), ' ', '')),')',''),',','.') as numeric) AS belop
+FROM
+ ${ref("raw_vikarbyra_kostnader")}

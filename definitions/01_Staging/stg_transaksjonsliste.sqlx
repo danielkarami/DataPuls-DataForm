@@ -1,0 +1,25 @@
+config {
+  type: "table"
+}
+
+-- Simulates raw ingest view over the LIFT data for financial transactions
+SELECT
+PARSE_DATE('%Y%m',(replace(yr_Mnd,'-',''))) as period_key
+,trim(Ansattnr) Ansattnr
+,CAST(trim(Arbfnr) as NUMERIC) as Arbfnr
+,trim(Loannsart) Loannsart
+,trim(Betegnelse) Betegnelse
+,trim(Art) Art
+,trim(Art_navn) Art_navn
+,trim(Ansvar) Ansvar
+,trim(Ansvar_navn) Ansvar_navn
+,trim(Funksjonsomr) Funksjonsomr
+,trim(Funksjonsomr_navn) Funksjonsomr_navn
+,CAST(replace(replace((REPLACE(Antall, ' ', '')),')',''),',','.') as numeric) AS Antall
+,CAST(replace(replace((REPLACE(Sats, ' ', '')),')',''),',','.') as numeric) AS Sats
+,CAST(replace(replace((REPLACE(belop, ' ', '')),')',''),',','.') as numeric) AS belop
+,CURRENT_TIMESTAMP() AS ingestion_timestamp
+FROM
+    -- Placeholder table in your staging dataset
+    ${ref("raw_transaksjonsliste")}
+where yr_Mnd not like '%Grand Total%'

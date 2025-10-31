@@ -1,0 +1,45 @@
+config {
+    type: "table",
+    schema: "data_mart_dev_datapuls_cloud",
+    description: "Fact table containing all general ledger financial transactions.",
+    columns: {
+        period_key: "The YYYYMM period for the transaction. Partitioning key.",
+        ansvar_code: "Foreign Key to dim_responsibility.",
+        account_code: "Foreign Key to dim_account (KONTO).",
+        ttkode: "Foreign Key to dim_transaction_code.",
+        amount: "The monetary value of the transaction.",
+    }
+     ,bigquery: {
+        // Partitioning on the integer period key (YYYYMM) for efficient time-series queries
+        partitionBy: {
+          field: "period_key",
+          data_type: "date"
+        },
+      /*  // Clustering on foreign keys used for filtering/aggregations to reduce scan costs
+        clusterBy: ["department_code"],*/
+      }
+}
+
+WITH
+  fact AS (
+  SELECT
+    fact_gat.* EXCEPT (begrepsverdi,beskrivelse,status,periode_fra,periode_til,ansvarsnr,nivva_1,nivaa_2,nivaa_3
+    ,nivaa_4,nivaa_5,nivaa_6,Avdeling_Nivaa_6,Enhet_Nivaa_5,Tjenesteomraade_Nivaa_4,Budsjettomraade_Nivaa_3
+    ,Direktornivaa_Nivaa_2),
+    T2.* EXCEPT (period_key,employee_id,Bare_Dag,Dag_eller_Turnus,Arbeidtimer_per_dag,ttkode)
+  FROM
+    ${ref("f_gat_month_agg")} AS fact_gat
+FULL OUTER JOIN
+    ${ref("fact_lift")} AS T2
+    ON fact_gat.period_key =  T2.period_key
+    AND fact_gat.Employee_id = CAST(T2.employee_id AS STRING)
+    AND fact_gat.department_code = T2.ansvar_code
+    )
+SELECT
+  *
+FROM
+  ${ref("dim_date")} AS date
+LEFT JOIN
+  fact
+ON
+  date.id = fact.period_key

@@ -12,7 +12,7 @@ config {
     // Partitioning on the integer period key (YYYYMM) for efficient time-series queries
     partitionBy: {
       field: "period_key",
-      data_type: "INT64"
+      data_type: "date"
     },
     // Clustering on foreign keys used for filtering/aggregations to reduce scan costs
     clusterBy: ["ansvar_code", "account_code", "ttkode"],
@@ -50,7 +50,9 @@ LEFT JOIN
     src_ttkode T1
     left join ${ref("dim_org")} dim_org
     on T1.ansvar_code = dim_org.ansvarsnr
-    and PARSE_DATE('%d/%m/%Y',  T1.period_key) BETWEEN dim_org.periode_fra AND dim_org.periode_til
+    and T1.period_key BETWEEN dim_org.periode_fra AND dim_org.periode_til
+--    and PARSE_DATE('%Y%m',  T1.period_key) BETWEEN dim_org.periode_fra AND dim_org.periode_til
+--    and status --removed thelogic as its causing historical errors for empl at 202401
 )
 
 select * from src_org
